@@ -249,15 +249,42 @@ def createTags(tags, namespace):
     logger.info('Importing %d tags' % len(tags))
     for tag in tags:
         logger.info('Importing %s' % tag)
-        url = '/'.join(['/tags', namespace])
+        url = '/'.join(['/tags', namespace, 'tags'])
         logger.debug(call('POST', url, {'name': tag,
             'description': 'A tag created in delicious & imported to FluidDB',
             'indexed': False}))
 
 
-def createObjects(objects, about="url"):
+def createObjects(objects, namespace, about="url"):
     """
     Given a list of object dicts will make sure a corresponding object is
-    created and tagged appropriately in FluidDB.
+    created and tagged appropriately in FluidDB. The namespace argument is used
+    to indicate where the tags representing the object's fields are to be
+    created. The about argument references the field to use as the unique
+    value for the about tag of each object.
     """
-    pass
+    logger.info('Creating tags for object fields')
+    for key in objects[0].keys():
+        url = '/'.join(['/tags', namespace])
+        logger.debug(call('POST', url, {'name': key,
+            'description': 'A tag generated from meta-data from delicious',
+            'indexed': False}))
+    logger.info('Creating/tagging %d objects' % len(objects))
+    for obj in objects:
+        logger.info('Creating/getting object about: %s' % obj[about])
+        logger.debug(call('POST', '/objects', {'about': obj[about]}))
+        logger.info('Adding metadata fields to the object.')
+        # query to identify the object we're interested in
+        query = 'fluiddb/about="%s"' % obj[about]
+        # build the dict that defines the values to tag
+        tag_list = obj['tag'].split()
+        payload = {}
+        for key in obj.keys():
+            path = '/'.join([namespace, key])
+            value = { "value": obj[key] }
+            payload[path] = value
+        for tag in tag_list:
+            path = '/'.join([namespace, 'tags', tag])
+            value = { "value": None }
+            payload[path] = value
+        logger.debug(call('PUT', '/values', payload, query=query))
