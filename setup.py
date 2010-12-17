@@ -3,14 +3,14 @@
 from distutils.core import setup
 
 setup(name='delicious2fluid',
-      version='0.0.3',
+      version='0.1.0',
       description="Imports delicious bookmarks to FluidDB",
       author='Nicholas Tollervey',
       author_email='ntoll@ntoll.org',
       url='http://fluidinfo.com',
       license='MIT',
       requires=['httplib2', ],
-      scripts=['delicious2fluid.py', ],
+      scripts=['delicious2fluid', ],
       long_description=open('README.rst').read(),
       classifiers=['Development Status :: 4 - Beta',
                    'Environment :: Web Environment',
