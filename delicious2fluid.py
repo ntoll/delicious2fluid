@@ -233,3 +233,11 @@ def parseXml(bookmarks):
                 tags.add(tag)
             objects.append(obj)
     return tags, objects
+
+
+def createTags(tags, namespace):
+    """
+    Given a set of tags from delicious will create equivalent tags in FluidDB
+    under the given namespace.
+    """
+    pass

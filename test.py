@@ -1,4 +1,5 @@
 import delicious2fluid
+import uuid
 import unittest
 
 # Generic test user created on the FluidDB Sandbox for the express purpose of
@@ -35,5 +36,30 @@ class TestDelisious2Fluid(unittest.TestCase):
             'extended', 'meta']:
             self.assertTrue(attribute in objs[0])
 
-
-
+    def testCreateTags(self):
+        """
+        Checks that a given set of tags from delicious are created in the
+        right place in FluidDB
+        """
+        delicious2fluid.login(USERNAME, PASSWORD)
+        tags = set(['foo', 'bar', 'baz'])
+        unique_ns = str(uuid.uuid4())
+        try:
+            # create the test namespace
+            headers, result = delicious2fluid.call('POST', '/namespaces/test',
+                {'name': unique_ns, 'description': 'a test namespace'})
+            self.assertEquals('201', headers['status'])
+            # create the tags
+            delicious2fluid.createTags(tags, 'test/%s' % unique_ns)
+            # check they exist
+            for tag in tags:
+                path = '/tags/test/%s/%s' % (unique_ns, tag)
+                headers, result = delicious2fluid.call('GET', path)
+                self.assertEquals('200', headers['status'])
+        finally:
+            # remove the tags
+            for tag in tags:
+                path = '/tags/test/%s/%s' % (unique_ns, tag)
+                delicious2fluid.call('DELETE', path)
+            # remove the test namespace
+            delicious2fluid.call('DELETE', '/namespaces/test/%s' % unique_ns)
