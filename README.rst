@@ -14,3 +14,22 @@ Once installed simply run the following command and answer the questions::
     $ delicious2fluid
 
 For more information about FluidDB please see: https://fluidinfo.com/
+
+When running the script you'll be asked for your username and password for
+both delicious and FluidDB.
+
+The following tags will be created in FluidDB::
+
+    USERNAME/delicious/url
+    USERNAME/delicious/hash
+    USERNAME/delicious/description
+    USERNAME/delicious/time
+    USERNAME/delicious/extended
+    USERNAME/delicious/meta
+    USERNAME/delicious/tag
+
+Given the tags above, FluidDB will store the tag values as a collection of
+strings in the "tag" tag. In addition each tag in delicious will be created
+in FluidDB under the following namespace:
+
+    USERNAME/delicious/tags

@@ -66,3 +66,49 @@ class TestDelisious2Fluid(unittest.TestCase):
                 delicious2fluid.call('DELETE', path)
             # remove the test namespace
             delicious2fluid.call('DELETE', '/namespaces/test/%s' % unique_ns)
+
+    def testCreateObjects(self):
+        """
+        Checks that objects are created correctly and have the appropriate tags
+        associated with them.
+        """
+        # A couple of mock "objects"
+        obj1 = {'foo': 'A', 'bar': 'B'}
+        obj2 = {'foo': 'C', 'bar': 'C'}
+        objs = [obj1, obj2]
+        # Set things up
+        delicious2fluid.login(USERNAME, PASSWORD)
+        tags = set(['foo', 'bar'])
+        unique_ns = str(uuid.uuid4())
+        try:
+            # create the test namespace
+            headers, result = delicious2fluid.call('POST', '/namespaces/test',
+                {'name': unique_ns, 'description': 'a test namespace'})
+            self.assertEquals('201', headers['status'])
+            # create the tags
+            delicious2fluid.createTags(tags, 'test/%s' % unique_ns)
+            # create the objects
+            delicious2fluid.createObjects(objs, about='foo')
+            # Check there are two objects tagged with the 'foo' and 'bar' tags
+            for tag in tags:
+                query_tag = 'has test/%s/%s' % (unique_ns, tag)
+                query_obj = 'has test/%s/delicious/%s' % (unique_ns, tag)
+                headers, result = delicious2fluid.call('GET', '/objects',
+                    query=query_tag)
+                # there are two objects that are tagged
+                self.assertEquals(2, len(result))
+                headers, result = delicious2fluid.call('GET', '/objects',
+                    query=query_obj)
+                # there are two objects that are tagged
+                self.assertEquals(2, len(result))
+        finally:
+            # remove the tags
+            for tag in tags:
+                tag_path = '/tags/test/%s/%s' % (unique_ns, tag)
+                tag_path_obj = '/tags/test/%s/delicious/%s' % (unique_ns, tag)
+                delicious2fluid.call('DELETE', tag_path)
+                delicious2fluid.call('DELETE', tag_path_obj)
+            # remove the test namespace
+            delicious2fluid.call('DELETE',
+                '/namespaces/test/%s/delicious' % unique_ns)
+            delicious2fluid.call('DELETE', '/namespaces/test/%s' % unique_ns)

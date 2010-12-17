@@ -18,15 +18,11 @@ USERNAME/delicious/extended
 USERNAME/delicious/meta
 USERNAME/delicious/tag
 
-It *is* possible to override the path to the tags.
-
 Given the tags above, FluidDB will store the tag values as a collection of
 strings in the "tag" tag. In addition each tag in delicious will be created
 in FluidDB under the following namespace:
 
 USERNAME/delicious/tags
-
-Unless you explicitly say it shouldn't (not-recommended). While this makes the import slower it does provide *lots* of advantages for creating simple queries.
 """
 
 import logging
@@ -257,3 +253,11 @@ def createTags(tags, namespace):
         logger.debug(call('POST', url, {'name': tag,
             'description': 'A tag created in delicious & imported to FluidDB',
             'indexed': False}))
+
+
+def createObjects(objects, about="url"):
+    """
+    Given a list of object dicts will make sure a corresponding object is
+    created and tagged appropriately in FluidDB.
+    """
+    pass
