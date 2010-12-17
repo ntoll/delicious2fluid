@@ -233,11 +233,16 @@ def parseXml(bookmarks):
             obj = {}
             # Create the object dict
             for attribute in ['href', 'hash', 'description', 'tag', 'time',
-                'extended', 'meta']:
-                obj[attribute] = tagNode.getAttribute(attribute)
+                'extended', 'meta', 'shared']:
+                if tagNode.hasAttribute(attribute):
+                    obj[attribute] = tagNode.getAttribute(attribute)
             # Grab the tags
             for tag in obj['tag'].split():
                 tags.add(tag)
+            # Ignore any bookmark that isn't to be shared
+            if 'shared' in obj:
+                if obj['shared'] == 'no':
+                    continue
             objects.append(obj)
     return tags, objects
 

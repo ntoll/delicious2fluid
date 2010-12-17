@@ -16,6 +16,11 @@ Once installed simply run the following command and answer the questions::
 Your username and password for both services are *not* stored in any way shape
 or form. If you encounter a problem you can find the log in the d2f.log file.
 
+*NOTE* private bookmarks are ignored. The tags attached to them are created
+within FluidDB but the object representing the private bookmark is not created.
+Obviously, I don't this script to leak inadvertantly potentially private
+information.
+
 For more information about FluidDB please see: https://fluidinfo.com/
 
 When running the script you'll be asked for your username and password for

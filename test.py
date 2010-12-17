@@ -31,7 +31,7 @@ class TestDelicious2Fluid(unittest.TestCase):
         tags, objs = delicious2fluid.parseXml(bookmarks)
         # There are the expected number of tags
         self.assertEquals(54, len(tags))
-        # There are the expected number of objects
+        # There are the expected number of objects (one was ignored)
         self.assertEquals(10, len(objs))
         # The objects have the expected keys
         for attribute in ['href', 'hash', 'description', 'tag', 'time',
