@@ -13,6 +13,9 @@ Once installed simply run the following command and answer the questions::
 
     $ delicious2fluid
 
+Your username and password for both services are *not* stored in any way shape
+or form. If you encounter a problem you can find the log in the d2f.log file.
+
 For more information about FluidDB please see: https://fluidinfo.com/
 
 When running the script you'll be asked for your username and password for
@@ -30,6 +33,6 @@ The following tags will be created in FluidDB::
 
 Given the tags above, FluidDB will store the tag values as a collection of
 strings in the "tag" tag. In addition each tag in delicious will be created
-in FluidDB under the following namespace:
+in FluidDB under the following namespace::
 
     USERNAME/delicious/tags

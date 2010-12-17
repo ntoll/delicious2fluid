@@ -9,7 +9,7 @@ setup(name='delicious2fluid',
       author_email='ntoll@ntoll.org',
       url='http://fluidinfo.com',
       license='MIT',
-      requires=['httplib2',],
+      requires=['httplib2', ],
       scripts=['delicious2fluid'],
       long_description=open('README.rst').read(),
       classifiers=['Development Status :: 4 - Beta',
@@ -20,5 +20,4 @@ setup(name='delicious2fluid',
                    'Programming Language :: Python',
                    'Topic :: Database',
                    'Topic :: Internet :: WWW/HTTP',
-                   'Topic :: Software Development :: Libraries']
-)
+                   'Topic :: Software Development :: Libraries'])

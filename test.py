@@ -1,7 +1,6 @@
 import delicious2fluid
 import uuid
 import unittest
-import logging
 
 
 # Generic test user created on the FluidDB Sandbox for the express purpose of

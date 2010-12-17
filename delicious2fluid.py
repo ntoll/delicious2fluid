@@ -26,7 +26,6 @@ USERNAME/delicious/tags
 """
 
 import logging
-import os
 import sys
 from getpass import getpass
 from xml.dom.minidom import parseString
@@ -199,6 +198,7 @@ DELICIOUS BASED FUNCTIONS
 The actual logic and processing happens in these functions.
 """
 
+
 def getBookmarks(username, password):
     """
     Given a user's delicious username and password grabs the XML using the API.
@@ -282,11 +282,11 @@ def createObjects(objects, namespace, about="href"):
         payload = {}
         for key in obj.keys():
             path = '/'.join([namespace, key])
-            value = { "value": obj[key] }
+            value = {"value": obj[key]}
             payload[path] = value
         for tag in tag_list:
             path = '/'.join([namespace, 'tags', tag])
-            value = { "value": None }
+            value = {"value": None}
             payload[path] = value
         logger.debug(call('PUT', '/values', payload, query=query))
 
