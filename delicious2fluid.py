@@ -296,7 +296,6 @@ if __name__ == '__main__':
     del_password = getpass("Delicious password: ").strip()
     fdb_username = raw_input("FluidDB username: ").strip()
     fdb_password = getpass("FluidDB password: ").strip()
-    login(fdb_username, fdb_password)
     # console logger handler
     ch = logging.StreamHandler()
     ch.setLevel(logging.INFO)
@@ -306,6 +305,7 @@ if __name__ == '__main__':
     bookmarks = getBookmarks(del_username, del_password)
     tags, objs = parseXml(bookmarks)
     logger.info('Creating delicious namespace in FluidDB')
+    login(fdb_username, fdb_password)
     logger.debug(call('POST', '/namespaces/%s' % fdb_username,
         {'name': 'delicious',
         'description': 'Holds tags imported from delicious'}))
