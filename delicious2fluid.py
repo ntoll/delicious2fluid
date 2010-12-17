@@ -205,8 +205,9 @@ def getBookmarks(username, password):
     """
     logger.info('Grabbing bookmarks from delicious')
     http = httplib2.Http()
-    url = "https://%s:%s@api.del.icio.us/v1/posts/all" % (username, password)
-    response, content = http.request(url, 'GET')
+    login(username, password)
+    url = "https://api.del.icio.us/v1/posts/all"
+    response, content = http.request(url, 'GET', None, global_headers)
     if response['status'] == '200':
         logger.info('200 OK')
         return content
@@ -255,7 +256,7 @@ def createTags(tags, namespace):
             'indexed': False}))
 
 
-def createObjects(objects, namespace, about="url"):
+def createObjects(objects, namespace, about="href"):
     """
     Given a list of object dicts will make sure a corresponding object is
     created and tagged appropriately in FluidDB. The namespace argument is used
@@ -288,3 +289,30 @@ def createObjects(objects, namespace, about="url"):
             value = { "value": None }
             payload[path] = value
         logger.debug(call('PUT', '/values', payload, query=query))
+
+
+if __name__ == '__main__':
+    del_username = raw_input("Delicious username: ").strip()
+    del_password = getpass("Delicious password: ").strip()
+    fdb_username = raw_input("FluidDB username: ").strip()
+    fdb_password = getpass("FluidDB password: ").strip()
+    login(fdb_username, fdb_password)
+    # console logger handler
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+    ch.setFormatter(log_format)
+    logger.addHandler(ch)
+    # grab from delicious
+    bookmarks = getBookmarks(del_username, del_password)
+    tags, objs = parseXml(bookmarks)
+    logger.info('Creating delicious namespace in FluidDB')
+    logger.debug(call('POST', '/namespaces/%s' % fdb_username,
+        {'name': 'delicious',
+        'description': 'Holds tags imported from delicious'}))
+    namespace_path = '/namespaces/%s/delicious' % fdb_username
+    logger.debug(call('POST', namespace_path, {'name': 'tags',
+         'description': 'Holds tags used by %s in delicious' % fdb_username}))
+    namespace = '%s/delicious' % fdb_username
+    createTags(tags, namespace)
+    createObjects(objs, namespace)
+    logger.info('Finished! :-)')
