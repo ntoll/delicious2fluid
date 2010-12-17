@@ -201,7 +201,7 @@ def getBookmarks(username, password):
     http = httplib2.Http()
     url = "https://%s:%s@api.del.icio.us/v1/posts/all" % (username, password)
     response, content = http.request(url, 'GET')
-    if response['status'] = '200':
+    if response['status'] == '200':
         logger.info('200 OK')
         return content
     else:
@@ -209,3 +209,27 @@ def getBookmarks(username, password):
         raise Exception("Can't get bookmarks from delicious")
 
 
+def parseXml(bookmarks):
+    """
+    Given the eggsmell in bookmarks will return two objects:
+        * a set of all tags used
+        * a list of dict objects representing the objects to be created in
+        FluidDB
+    """
+    dom = parseString(bookmarks)
+    tags = set()
+    objects = []
+    if dom.firstChild.hasChildNodes():
+        tagNodes = [node for node in dom.firstChild.childNodes
+            if node.nodeName == u'post']
+        for tagNode in tagNodes:
+            obj = {}
+            # Create the object dict
+            for attribute in ['href', 'hash', 'description', 'tag', 'time',
+                'extended', 'meta']:
+                obj[attribute] = tagNode.getAttribute(attribute)
+            # Grab the tags
+            for tag in obj['tag'].split():
+                tags.add(tag)
+            objects.append(obj)
+    return tags, objects
