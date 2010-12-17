@@ -42,6 +42,16 @@ if sys.version_info < (2, 6):
 else:
     import json
 
+# Logging
+LOG_FILENAME = 'd2f.log'
+logger = logging.getLogger('d2f')
+logger.setLevel(logging.DEBUG)
+logfile_handler = logging.FileHandler(LOG_FILENAME)
+logfile_handler.setLevel(logging.DEBUG)
+log_format = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s -"\
+" %(message)s")
+logfile_handler.setFormatter(log_format)
+logger.addHandler(logfile_handler)
 
 """
 FLUIDDB RELATED FUNCTIONS
@@ -240,4 +250,10 @@ def createTags(tags, namespace):
     Given a set of tags from delicious will create equivalent tags in FluidDB
     under the given namespace.
     """
-    pass
+    logger.info('Importing %d tags' % len(tags))
+    for tag in tags:
+        logger.info('Importing %s' % tag)
+        url = '/'.join(['/tags', namespace])
+        logger.debug(call('POST', url, {'name': tag,
+            'description': 'A tag created in delicious & imported to FluidDB',
+            'indexed': False}))
