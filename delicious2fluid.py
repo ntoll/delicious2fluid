@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 Grabs all your delicious bookmarks and imports them into FluidDB.
@@ -8,21 +7,25 @@ both delicious and FluidDB.
 
 Sign up for FluidDB here: https://fluidinfo.com/accounts/new/
 
-The following tags will be created in FluidDB:
+By default the following tags will be created in your root namespace (you can
+always override this):
 
-USERNAME/delicious/url
+USERNAME/title
+USERNAME/notes
+
+And the following tags will be created under the delicious namespace to store
+metadata:
+
 USERNAME/delicious/hash
-USERNAME/delicious/description
 USERNAME/delicious/time
-USERNAME/delicious/extended
 USERNAME/delicious/meta
 USERNAME/delicious/tag
 
-Given the tags above, FluidDB will store the tag values as a collection of
-strings in the "tag" tag. In addition each tag in delicious will be created
-in FluidDB under the following namespace:
+FluidDB will store the tag values as a collection of strings in the "tag" tag.
+In addition each tag you create in delicious will be recreated in FluidDB under
+your root namespace:
 
-USERNAME/delicious/tags
+USERNAME/TAGNAME
 """
 
 import logging
@@ -235,7 +238,13 @@ def parseXml(bookmarks):
             for attribute in ['href', 'hash', 'description', 'tag', 'time',
                 'extended', 'meta', 'shared']:
                 if tagNode.hasAttribute(attribute):
-                    obj[attribute] = tagNode.getAttribute(attribute)
+                    if attribute == 'description':
+                        key = 'title'
+                    elif attribute == 'extended':
+                        key = 'notes'
+                    else:
+                        key = attribute
+                    obj[key] = tagNode.getAttribute(attribute)
             # Grab the tags
             for tag in obj['tag'].split():
                 tags.add(tag)
@@ -255,7 +264,7 @@ def createTags(tags, namespace):
     logger.info('Importing %d tags' % len(tags))
     for tag in tags:
         logger.info('Importing %s' % tag)
-        url = '/'.join(['/tags', namespace, 'tags'])
+        url = '/'.join(['/tags', namespace])
         logger.debug(call('POST', url, {'name': tag,
             'description': 'A tag created in delicious & imported to FluidDB',
             'indexed': False}))
@@ -272,6 +281,11 @@ def createObjects(objects, namespace, about="href"):
     logger.info('Creating tags for object fields')
     for key in objects[0].keys():
         url = '/'.join(['/tags', namespace])
+        if key == 'href':
+            # ignore href since its the value of the about tag
+            continue
+        elif not key in ['title', 'notes']:
+            url = '/'.join([url, 'delicious'])
         logger.debug(call('POST', url, {'name': key,
             'description': 'A tag generated from meta-data from delicious',
             'indexed': False}))
@@ -286,21 +300,68 @@ def createObjects(objects, namespace, about="href"):
         tag_list = obj['tag'].split()
         payload = {}
         for key in obj.keys():
-            path = '/'.join([namespace, key])
+            if key == 'href':
+                # ignore 'href' as it's the about tag value
+                continue
+            elif not key in ['title', 'notes']:
+                path = '/'.join([namespace, 'delicious', key])
+            else:
+                path = '/'.join([namespace, key])
             value = {"value": obj[key]}
             payload[path] = value
         for tag in tag_list:
-            path = '/'.join([namespace, 'tags', tag])
+            path = '/'.join([namespace, tag])
             value = {"value": None}
             payload[path] = value
         logger.debug(call('PUT', '/values', payload, query=query))
 
 
-if __name__ == '__main__':
+def createNamespace(parent, path):
+    """
+    Recursively creates a namespace path from a list of namespaces
+    """
+    if path:
+        logger.debug(call('POST', '/namespaces/%s' % parent,
+            {'name': path[0],
+            'description': 'Holds tags imported from delicious'}))
+        createNamespace('/'.join([parent, path[0]]), path[1:])
+
+
+def importIntoFluidDB(tags, objects, fdb_username, fdb_password, fdb_root):
+    """
+    Sets up the correct state in FluidDB for the import of the tags from
+    delicious
+    """
+    # set up things in FluidDB
+    logger.info('Creating delicious namespace in FluidDB')
+    login(fdb_username, fdb_password)
+    if fdb_root == fdb_username:
+        # create the delicious namespace
+        createNamespace(fdb_root, ['delicious', ])
+    else:
+        # not importing to the user's root namespace so create the bespoke
+        # namespace path.
+        path = fdb_root.split('/')
+        path.append('delicious')
+        createNamespace(path[0], path[1:])
+    createTags(tags, fdb_root)
+    createObjects(objects, fdb_root)
+
+
+def run():
+    """
+    Grabs user input and coordinates the calling of the various functions
+    required to export from delicious and import into FluidDB.
+    """
     del_username = raw_input("Delicious username: ").strip()
     del_password = getpass("Delicious password: ").strip()
     fdb_username = raw_input("FluidDB username: ").strip()
     fdb_password = getpass("FluidDB password: ").strip()
+    fdb_root = raw_input("FluidDB path (hit return to default to root"\
+        " namespace: %s)" %
+        fdb_username).strip()
+    if not fdb_root:
+        fdb_root = fdb_username
     # console logger handler
     ch = logging.StreamHandler()
     ch.setLevel(logging.INFO)
@@ -308,16 +369,9 @@ if __name__ == '__main__':
     logger.addHandler(ch)
     # grab from delicious
     bookmarks = getBookmarks(del_username, del_password)
+    # parse the eggsmell into something useful
     tags, objs = parseXml(bookmarks)
-    logger.info('Creating delicious namespace in FluidDB')
-    login(fdb_username, fdb_password)
-    logger.debug(call('POST', '/namespaces/%s' % fdb_username,
-        {'name': 'delicious',
-        'description': 'Holds tags imported from delicious'}))
-    namespace_path = '/namespaces/%s/delicious' % fdb_username
-    logger.debug(call('POST', namespace_path, {'name': 'tags',
-         'description': 'Holds tags used by %s in delicious' % fdb_username}))
-    namespace = '%s/delicious' % fdb_username
-    createTags(tags, namespace)
-    createObjects(objs, namespace)
+    # import the results into FluidDB
+    importIntoFluidDB(tags, objs, fdb_username, fdb_password, fdb_root)
+    # fin!
     logger.info('Finished! :-)')

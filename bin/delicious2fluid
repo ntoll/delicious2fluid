@@ -1,0 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import delicious2fluid
+
+if __name__ == '__main__':
+    delicious2fluid.run()
