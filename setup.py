@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 setup(name='delicious2fluid',
-      version='0.1.0',
+      version='0.1.1',
       description="Imports delicious bookmarks to FluidDB",
       author='Nicholas Tollervey',
       author_email='ntoll@ntoll.org',
