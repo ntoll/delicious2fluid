@@ -238,15 +238,20 @@ def parseXml(bookmarks):
             for attribute in ['href', 'hash', 'description', 'tag', 'time',
                 'extended', 'meta', 'shared']:
                 if tagNode.hasAttribute(attribute):
+                    # Faffing about to make sure description->title,
+                    # extended->notes and "tag" contains a list. Ugly hack :-(
                     if attribute == 'description':
                         key = 'title'
                     elif attribute == 'extended':
                         key = 'notes'
                     else:
                         key = attribute
-                    obj[key] = tagNode.getAttribute(attribute)
+                    if key == 'tag':
+                        obj[key] = tagNode.getAttribute(attribute).split()
+                    else:
+                        obj[key] = tagNode.getAttribute(attribute)
             # Grab the tags
-            for tag in obj['tag'].split():
+            for tag in obj['tag']:
                 tags.add(tag)
             # Ignore any bookmark that isn't to be shared
             if 'shared' in obj:
@@ -297,7 +302,6 @@ def createObjects(objects, namespace, about="href"):
         # query to identify the object we're interested in
         query = 'fluiddb/about="%s"' % obj[about]
         # build the dict that defines the values to tag
-        tag_list = obj['tag'].split()
         payload = {}
         for key in obj.keys():
             if key == 'href':
@@ -309,7 +313,7 @@ def createObjects(objects, namespace, about="href"):
                 path = '/'.join([namespace, key])
             value = {"value": obj[key]}
             payload[path] = value
-        for tag in tag_list:
+        for tag in obj['tag']:
             path = '/'.join([namespace, tag])
             value = {"value": None}
             payload[path] = value

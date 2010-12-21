@@ -37,6 +37,7 @@ class TestDelicious2Fluid(unittest.TestCase):
         for attribute in ['href', 'hash', 'title', 'tag', 'time',
             'notes', 'meta']:
             self.assertTrue(attribute in objs[0])
+        self.assertTrue(isinstance(objs[0]['tag'], list))
 
     def testCreateNamespace(self):
         """
@@ -98,10 +99,10 @@ class TestDelicious2Fluid(unittest.TestCase):
         associated with them.
         """
         # A couple of mock "objects"
-        obj1 = {'foo': 'A', 'bar': 'B', 'tag': 'foo bar', 'title': 'foo bar',
-            'notes': 'baz'}
-        obj2 = {'foo': 'C', 'bar': 'C', 'tag': 'foo bar', 'title': 'foo bar',
-            'notes': 'baz'}
+        obj1 = {'foo': 'A', 'bar': 'B', 'tag': ['foo', 'bar'],
+                'title': 'foo bar', 'notes': 'baz'}
+        obj2 = {'foo': 'C', 'bar': 'C', 'tag': ['foo', 'bar'],
+                'title': 'foo bar', 'notes': 'baz'}
         objs = [obj1, obj2]
         # Set things up
         delicious2fluid.login(USERNAME, PASSWORD)
